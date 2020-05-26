@@ -5,6 +5,8 @@ require "rubygems"
 require 'pry'
 require 'nokogiri'
 
+require 'twitter'
+
 COLORS = {
   red: [2800, 9999],
 #   orange: [2400, 2799]
@@ -60,29 +62,57 @@ def parse_user_page(html)
   twitter_tr.first.css('td').text
 end
 
-def main(limit)
-  COLORS.each do |color, rating|
-    usernames = []
-    page = 1
-    while true
-      url = ranking_url(*rating, page)
-      p url
-      html = download(url)
-      users_on_page = parse_ranking_page(html)
-      break if users_on_page.empty?
 
-      usernames.concat users_on_page
+def usernames(rating)
+  usernames = []
+  page = 1
+  while true
+    url = ranking_url(*rating, page)
+    p url
+    html = download(url)
+    users_on_page = parse_ranking_page(html)
+    break if users_on_page.empty?
 
-      page += 1
-      break # TODO
-    end
+    usernames.concat users_on_page
 
-    twitter_ids = usernames.first(limit).map do |username|
-      url = user_url(username)
-      html = download(url)
-      parse_user_page(html)
-    end
+    page += 1
+  end
+
+  usernames
+end
+
+def twitter_ids(usernames, limit)
+  usernames.first(limit).map do |username|
+    url = user_url(username)
+    html = download(url)
+    parse_user_page(html)
+  end.compact
+end
+
+def get_client
+  Twitter::REST::Client.new do |config|
+    config.consumer_key        =
+    config.consumer_secret     =
+    config.access_token        =
+    config.access_token_secret =
   end
 end
 
-# main(limit=3)
+def main(limit)
+  client = get_client
+  COLORS.each do |color, rating|
+    usernames = usernames(rating)
+    p usernames
+    twitter_ids = twitter_ids(usernames, limit)
+    p twitter_ids
+
+    list = client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
+    twitter_ids.each_slice(100) do |ids|
+      client.add_list_members(list, ids)
+    end
+    p "finished #{color}"
+  end
+  binding.pry
+end
+
+main(limit=10000)
