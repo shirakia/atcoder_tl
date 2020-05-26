@@ -8,3 +8,5 @@ ruby '2.7.1'
 
 gem 'pry-byebug'
 gem 'nokogiri'
+
+gem 'twitter'
