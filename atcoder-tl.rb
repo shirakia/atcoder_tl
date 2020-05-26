@@ -1,5 +1,6 @@
 require 'uri'
 require 'net/http'
+require "yaml"
 
 require "rubygems"
 require 'pry'
@@ -8,14 +9,15 @@ require 'nokogiri'
 require 'twitter'
 
 COLORS = {
-  red: [2800, 9999],
-#   orange: [2400, 2799]
-#   yellow: [2000, 2399]
-#   blue: [1600, 1999]
-#   cyan: [1200, 1599]
-#   green: [800, 1199]
-#   brown: [400, 799]
-#   gray: [0, 399]
+  test: [3400, 9999],
+#  red: [2800, 9999],
+#   orange: [2400, 2799],
+#   yellow: [2000, 2399],
+#   blue: [1600, 1999],
+#   cyan: [1200, 1599],
+#   green: [800, 1199],
+#   brown: [400, 799],
+#   gray: [0, 399],
 }
 
 ATCODER_URL = 'https://atcoder.jp/'
@@ -89,30 +91,33 @@ def twitter_ids(usernames, limit)
   end.compact
 end
 
-def get_client
+def get_twitter_client(twitter_config)
   Twitter::REST::Client.new do |config|
-    config.consumer_key        =
-    config.consumer_secret     =
-    config.access_token        =
-    config.access_token_secret =
+    config.consumer_key        = twitter_config['consumer_key']
+    config.consumer_secret     = twitter_config['consumer_secret']
+    config.access_token        = twitter_config['access_token']
+    config.access_token_secret = twitter_config['access_token_secret']
   end
 end
 
 def main(limit)
-  client = get_client
+  config = open('./config.yml', 'r') { |f| YAML.load(f) }
+  twitter_client = get_twitter_client(config['twitter'])
+
   COLORS.each do |color, rating|
     usernames = usernames(rating)
     p usernames
+    p usernames.size
     twitter_ids = twitter_ids(usernames, limit)
     p twitter_ids
+    p twitter_ids.size
 
-    list = client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
+    list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
     twitter_ids.each_slice(100) do |ids|
-      client.add_list_members(list, ids)
+      twitter_client.add_list_members(list, ids)
     end
     p "finished #{color}"
   end
-  binding.pry
 end
 
 main(limit=10000)
