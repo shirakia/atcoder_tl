@@ -1,8 +1,8 @@
-require_relative 'page'
+require_relative 'util'
 
 module RankingPage
   class << self
-    include Page
+    include Util
 
     def download(url)
       sleep(1)
@@ -18,11 +18,14 @@ module RankingPage
     end
 
     def usernames(rating)
+      logger = Logger.new(STDOUT)
+
       usernames = []
       page = 1
       while true
         url = url(*rating, page)
-        p url
+        logger.info "Downloading #{url}"
+
         html = download(url)
         usernames_on_page = parse(html)
         usernames.concat usernames_on_page

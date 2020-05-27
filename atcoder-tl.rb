@@ -1,6 +1,7 @@
-require 'uri'
+require 'logger'
 require 'net/http'
-require "yaml"
+require 'uri'
+require 'yaml'
 
 require 'pry'
 require 'nokogiri'
@@ -8,9 +9,11 @@ require 'twitter'
 
 require_relative 'atcoder-tl/ranking_page'
 require_relative 'atcoder-tl/user_page'
+require_relative 'atcoder-tl/util'
+include Util
 
 COLORS = {
-  test: [3400, 9999],
+  test: [3000, 9999],
 #  red: [2800, 9999],
 #   orange: [2400, 2799],
 #   yellow: [2000, 2399],
@@ -30,23 +33,40 @@ def get_twitter_client(twitter_config)
   end
 end
 
+def log_ids(name, ids)
+  logger.info "#{name}(#{ids.size}): #{ids.join(', ')}"
+end
+
 def main(limit)
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
 
   COLORS.each do |color, rating|
-    usernames = RankingPage.usernames(rating)
-    p usernames
-    p usernames.size
-    twitter_ids = UserPage.twitter_ids(usernames, limit)
-    p twitter_ids
-    p twitter_ids.size
+    logger.info "Start processing #{color}"
+    atcoder_usernames = RankingPage.usernames(rating)
+    log_ids('atcoder_usernames', atcoder_usernames)
+
+    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames, limit)
+    log_ids('twitter_ids_new', twitter_ids_new)
 
     list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
-    twitter_ids.each_slice(100) do |ids|
+    twitter_ids_current = twitter_client.list_members(list).map{|member| member.screen_name}
+    log_ids('twitter_ids_current', twitter_ids_current)
+
+    twitter_ids_to_be_added   = twitter_ids_new     - twitter_ids_current
+    twitter_ids_to_be_removed = twitter_ids_current - twitter_ids_new
+    log_ids('twitter_ids_to_be_added', twitter_ids_to_be_added)
+    log_ids('twitter_ids_to_be_removed', twitter_ids_to_be_removed)
+
+    twitter_ids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
     end
-    p "finished #{color}"
+
+    twitter_ids_to_be_removed.each_slice(100) do |ids|
+      twitter_client.remove_list_members(list, ids)
+    end
+
+    logger.info "Finished processing #{color}"
   end
 end
 

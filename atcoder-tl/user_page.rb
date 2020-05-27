@@ -1,8 +1,8 @@
-require_relative 'page'
+require_relative 'util'
 
 module UserPage
   class << self
-    include Page
+    include Util
 
     def twitter_ids(usernames, limit)
       usernames.first(limit).map do |username|
@@ -21,9 +21,11 @@ module UserPage
 
       trs = doc.css('#main-container > div.row > div.col-sm-3 > table > tr')
       twitter_tr = trs.select{ |tr| tr.css('th').text == 'Twitter ID' }
-
       return nil if twitter_tr.empty?
-      twitter_tr.first.css('td').text
+
+      twitter_id = twitter_tr.first.css('td').text
+      twitter_id.slice!(0) # @shirakia -> shirakia
+      twitter_id
     end
   end
 end

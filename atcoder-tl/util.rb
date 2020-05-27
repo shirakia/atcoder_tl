@@ -1,4 +1,4 @@
-module Page
+module Util
   def download(url)
     sleep(1)
 
@@ -10,5 +10,9 @@ module Page
     else
       response.body
     end
+  end
+
+  def logger
+    @logger ||= Logger.new(STDOUT)
   end
 end
