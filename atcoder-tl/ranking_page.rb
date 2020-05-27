@@ -18,8 +18,6 @@ module RankingPage
     end
 
     def usernames(rating)
-      logger = Logger.new(STDOUT)
-
       usernames = []
       page = 1
       while true

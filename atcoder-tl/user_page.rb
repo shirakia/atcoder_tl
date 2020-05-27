@@ -5,7 +5,8 @@ module UserPage
     include Util
 
     def twitter_ids(usernames)
-      usernames.map do |username|
+      usernames.map.with_index do |username, i|
+        logger.info "Collecting Twitter ID progress: #{i}" if i % 100 == 0
         url = url(username)
         html = download(url)
         parse(html)

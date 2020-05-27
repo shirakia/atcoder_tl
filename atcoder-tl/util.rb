@@ -13,6 +13,6 @@ module Util
   end
 
   def logger
-    @logger ||= Logger.new(STDOUT)
+    @logger ||= Logger.new("log.txt")
   end
 end
