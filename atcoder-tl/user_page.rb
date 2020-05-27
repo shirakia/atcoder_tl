@@ -10,7 +10,7 @@ module UserPage
         url = url(username)
         html = download(url)
         parse(html)
-      end.compact
+      end.compact.sort
     end
 
     def url(user_id)
