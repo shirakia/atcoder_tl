@@ -37,7 +37,7 @@ def log_ids(name, ids)
   logger.info "#{name}(#{ids.size}): #{ids.join(', ')}"
 end
 
-def main(limit)
+def main
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
 
@@ -46,7 +46,7 @@ def main(limit)
     atcoder_usernames = RankingPage.usernames(rating)
     log_ids('atcoder_usernames', atcoder_usernames)
 
-    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames, limit)
+    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames)
     log_ids('twitter_ids_new', twitter_ids_new)
 
     list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
@@ -70,4 +70,4 @@ def main(limit)
   end
 end
 
-main(limit=10000)
+main

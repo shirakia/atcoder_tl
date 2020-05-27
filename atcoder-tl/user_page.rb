@@ -4,8 +4,8 @@ module UserPage
   class << self
     include Util
 
-    def twitter_ids(usernames, limit)
-      usernames.first(limit).map do |username|
+    def twitter_ids(usernames)
+      usernames.map do |username|
         url = url(username)
         html = download(url)
         parse(html)
