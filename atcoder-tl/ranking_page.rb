@@ -17,12 +17,12 @@ module RankingPage
       end
     end
 
-    def usernames(rating)
+    def usernames(color)
       usernames = []
       page = 1
       while true
-        url = url(*rating, page)
-        logger.info "Downloading #{url}"
+        url = url(color.rating_lb, color.rating_ub, page)
+        logger.info "[#{color.name}] Downloading #{url}"
 
         html = download(url)
         usernames_on_page = parse(html)

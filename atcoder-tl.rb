@@ -1,3 +1,4 @@
+require 'date'
 require 'logger'
 require 'net/http'
 require 'uri'
@@ -12,17 +13,21 @@ require_relative 'atcoder-tl/user_page'
 require_relative 'atcoder-tl/util'
 include Util
 
-COLORS = {
-  test: [3000, 9999],
-#  red: [2800, 9999],
-#   orange: [2400, 2799],
-#   yellow: [2000, 2399],
-#   blue: [1600, 1999],
-#   cyan: [1200, 1599],
-#   green: [800, 1199],
-#   brown: [400, 799],
-#   gray: [0, 399],
-}
+def colors
+  color = Struct.new(:name, :rating_lb, :rating_ub, :last_competed_until)
+  today = Date.today
+  [
+    color.new('test',   3000, 9999, today << 3),
+#     color.new('red',    2800, 9999, today << 12),
+#     color.new('orange', 2400, 2799, today << 6),
+#     color.new('yellow', 2000, 2399, today << 6),
+#     color.new('blue',   1600, 1999, today << 3),
+#     color.new('cyan',   1200, 1599, today << 3),
+#     color.new('green',   800, 1199, today << 3),
+#     color.new('brown',   400,  799, today << 3),
+#     color.new('gray',      0,  399, today << 3),
+  ]
+end
 
 def get_twitter_client(twitter_config)
   Twitter::REST::Client.new do |config|
@@ -33,31 +38,31 @@ def get_twitter_client(twitter_config)
   end
 end
 
-def log_ids(name, ids)
-  logger.info "#{name}(#{ids.size}): #{ids.sort.join(', ')}"
+def log_ids(name, ids, color)
+  logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
 end
 
 def main
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
+  colors.each do |color|
+    logger.info "[#{color.name}] Started processing"
 
-  COLORS.each do |color, rating|
-    logger.info "Start processing #{color}"
-    atcoder_usernames = RankingPage.usernames(rating)
-    log_ids('atcoder_usernames', atcoder_usernames)
+    atcoder_usernames = RankingPage.usernames(color)
+    log_ids('atcoder_usernames', atcoder_usernames, color)
 
-    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames)
-    log_ids('twitter_ids_new', twitter_ids_new)
+    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames, color)
+    log_ids('twitter_ids_new', twitter_ids_new, color)
 
-    list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color}"}.first
+    list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color.name}"}.first
     twitter_ids_current = twitter_client.list_members(list).
       map{|member| member.screen_name}
-    log_ids('twitter_ids_current', twitter_ids_current)
+    log_ids('twitter_ids_current', twitter_ids_current, color)
 
     twitter_ids_to_be_added   = twitter_ids_new     - twitter_ids_current
     twitter_ids_to_be_removed = twitter_ids_current - twitter_ids_new
-    log_ids('twitter_ids_to_be_added', twitter_ids_to_be_added)
-    log_ids('twitter_ids_to_be_removed', twitter_ids_to_be_removed)
+    log_ids('twitter_ids_to_be_added', twitter_ids_to_be_added, color)
+    log_ids('twitter_ids_to_be_removed', twitter_ids_to_be_removed, color)
 
     twitter_ids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
@@ -66,9 +71,10 @@ def main
     twitter_ids_to_be_removed.each_slice(100) do |ids|
       twitter_client.remove_list_members(list, ids)
     end
-
-    logger.info "Finished processing #{color}"
+    logger.info "[#{color.name}] Finished processing"
   end
 end
 
-main
+if $0 == __FILE__
+  main
+end
