@@ -26,8 +26,8 @@ module UserPage
 
       twitter_id = twitter_tr.first.css('td').text
       # @shirakia -> shirakia と変換。間違って @@shirakia のように登録している人が
-      # 複数人観測されるため、sliceではなくdelete('@')
-      twitter_id.delete('@')
+      # 複数人観測されるため、slice!ではなくdelete!('@')
+      twitter_id.delete!('@')
 
       twitter_id
     end
