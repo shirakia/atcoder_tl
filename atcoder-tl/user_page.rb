@@ -25,7 +25,10 @@ module UserPage
       return nil if twitter_tr.empty?
 
       twitter_id = twitter_tr.first.css('td').text
-      twitter_id.slice!(0) # @shirakia -> shirakia
+      # @shirakia -> shirakia と変換。間違って @@shirakia のように登録している人が
+      # 複数人観測されるため、sliceではなくdelete('@')
+      twitter_id.delete('@')
+
       twitter_id
     end
   end
