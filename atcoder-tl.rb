@@ -67,10 +67,22 @@ def main
     twitter_ids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
     end
+    count_after_add = list.member_count
 
     twitter_ids_to_be_removed.each_slice(100) do |ids|
       twitter_client.remove_list_members(list, ids)
     end
+    count_after_delete = list.member_count
+
+    add_count    = count_after_add - twitter_ids_current.size
+    delete_count = count_after_delete - count_after_add
+
+    tweet = "atcoder-tl-#{color.name} を更新しました。\n"
+    tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
+    tweet << "https://twitter.com/atcoder_tl/lists/atcoder-tl-#{color.name}"
+    logger.info "[#{color.name}] #{tweet}"
+    twitter_client.update(tweet)
+
     logger.info "[#{color.name}] Finished processing"
   end
 end
