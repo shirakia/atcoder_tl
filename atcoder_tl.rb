@@ -8,9 +8,9 @@ require 'pry'
 require 'nokogiri'
 require 'twitter'
 
-require_relative 'atcoder-tl/ranking_page'
-require_relative 'atcoder-tl/user_page'
-require_relative 'atcoder-tl/util'
+require_relative 'atcoder_tl/ranking_page'
+require_relative 'atcoder_tl/user_page'
+require_relative 'atcoder_tl/util'
 include Util
 
 def colors
@@ -54,7 +54,7 @@ def main
     twitter_ids_new = UserPage.twitter_ids(atcoder_usernames, color)
     log_ids('twitter_ids_new', twitter_ids_new, color)
 
-    list = twitter_client.lists.select{|list| list.name == "atcoder-tl-#{color.name}"}.first
+    list = twitter_client.lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
     twitter_ids_current = twitter_client.list_members(list).
       map{|member| member.screen_name}
     log_ids('twitter_ids_current', twitter_ids_current, color)
@@ -77,9 +77,9 @@ def main
     add_count    = count_after_add - twitter_ids_current.size
     delete_count = count_after_delete - count_after_add
 
-    tweet = "atcoder-tl-#{color.name} を更新しました。\n"
+    tweet = "atcoder_tl_#{color.name} を更新しました。\n"
     tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
-    tweet << "https://twitter.com/atcoder_tl/lists/atcoder-tl-#{color.name}"
+    tweet << "https://twitter.com/atcoder_tl/lists/atcoder_tl_#{color.name}"
     logger.info "[#{color.name}] #{tweet}"
     twitter_client.update(tweet)
 
