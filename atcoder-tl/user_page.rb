@@ -8,8 +8,14 @@ module UserPage
       usernames.map.with_index do |username, i|
         logger.info "[#{color.name}] Collecting Twitter ID progress: #{i}" if i % 100 == 0
         url = url(username)
-        html = download(url)
-        parse(html)
+
+        begin
+          html = download(url)
+          parse(html)
+        rescue
+          logger.warn "[#{color.name}] 404 or parse error:  #{url}"
+          nil
+        end
       end.compact
         .select{ |tid, date| date >= color.last_competed_until }
         .map{ |tid, date| tid }
