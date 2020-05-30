@@ -1,7 +1,8 @@
 # AtCoder TL
 AtCoderの色別TLを生成します。コンテスト前後の色鮮やかなTLをお楽しみ下さい。
 
-![atcoder-tl_screenshot](https://user-images.githubusercontent.com/728375/83148526-0b68a480-a134-11ea-9d32-6f0394e787ec.png)
+![スクリーンショット](https://user-images.githubusercontent.com/728375/83148526-0b68a480-a134-11ea-9d32-6f0394e787ec.png "TweetDeckにリストを追加した例")
+TweetDeckにリストを追加した例
 
 ## 使い方
 
