@@ -76,7 +76,7 @@ def main
     count_after_delete = list.member_count
 
     add_count    = count_after_add - twitter_ids_current.size
-    delete_count = count_after_delete - count_after_add
+    delete_count = count_after_add - count_after_delete
 
     tweet = "atcoder_tl_#{color.name} を更新しました。\n"
     tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
