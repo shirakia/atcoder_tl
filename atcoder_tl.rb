@@ -68,12 +68,12 @@ def main
     twitter_ids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
     end
-    count_after_add = list.member_count
+    count_after_add = twitter_client.list_members(list).count
 
     twitter_ids_to_be_removed.each_slice(100) do |ids|
       twitter_client.remove_list_members(list, ids)
     end
-    count_after_delete = list.member_count
+    count_after_delete = twitter_client.list_members(list).count
 
     add_count    = count_after_add - twitter_ids_current.size
     delete_count = count_after_add - count_after_delete
