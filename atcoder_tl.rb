@@ -57,7 +57,7 @@ def main
 
     list = twitter_client.lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
     twitter_ids_current = twitter_client.list_members(list).
-      map{|member| member.screen_name}
+      map{|member| member.screen_name.downcase}
     log_ids('twitter_ids_current', twitter_ids_current, color)
 
     twitter_ids_to_be_added   = twitter_ids_new     - twitter_ids_current

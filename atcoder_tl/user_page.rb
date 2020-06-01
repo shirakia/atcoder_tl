@@ -36,6 +36,7 @@ module UserPage
       # @shirakia -> shirakia と変換。間違って @@shirakia のように登録している人が
       # 複数人観測されるため、slice!ではなくdelete!('@')
       twitter_id.delete!('@')
+      twitter_id.downcase!
 
       trs_right = doc.css('#main-container > div.row > div.col-sm-9 > table > tr')
       last_competed_tr = trs_right.select{ |tr| tr.css('th').text == 'Last Competed' }
