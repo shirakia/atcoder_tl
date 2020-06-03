@@ -18,7 +18,7 @@ def colors
   today = Date.today
   # TODO configに出す
   [
-    color.new('test',   3000, 9999, today << 3,  'https://twitter.com/i/lists/1265295344977408000'),
+#     color.new('test',   3000, 9999, today << 3,  'https://twitter.com/i/lists/1265295344977408000'),
 #     color.new('red',    2800, 9999, today << 12, 'https://twitter.com/i/lists/1265268852528566273'),
 #     color.new('orange', 2400, 2799, today << 6,  'https://twitter.com/i/lists/1265268943393943554'),
 #     color.new('yellow', 2000, 2399, today << 6,  'https://twitter.com/i/lists/1265269023278690304'),
@@ -84,6 +84,7 @@ def main
     logger.info "[#{color.name}] #{tweet}"
     twitter_client.update(tweet)
 
+    logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
   end
 end
