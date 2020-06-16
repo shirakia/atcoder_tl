@@ -43,7 +43,7 @@ def log_ids(name, ids, color)
   logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
 end
 
-def main
+def update_all
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
   colors.each do |color|
@@ -90,5 +90,5 @@ def main
 end
 
 if $0 == __FILE__
-  main
+  update_all
 end
