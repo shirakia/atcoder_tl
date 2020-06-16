@@ -13,6 +13,6 @@ module Util
   end
 
   def logger
-    @logger ||= Logger.new("log.txt")
+    @logger ||= Logger.new("./log/log.txt")
   end
 end
