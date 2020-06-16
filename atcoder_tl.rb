@@ -46,13 +46,18 @@ end
 def update_all
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
+  all_users = {}
+
   colors.each do |color|
     logger.info "[#{color.name}] Started processing"
 
     atcoder_usernames = RankingPage.usernames(color)
     log_ids('atcoder_usernames', atcoder_usernames, color)
 
-    twitter_ids_new = UserPage.twitter_ids(atcoder_usernames, color)
+    users = UserPage.users(atcoder_usernames, color)
+    all_users.merge!(users)
+    twitter_ids_new = users.select{ |k, v| v[:last_competed] >= color.last_competed_until }.
+                        map{ |k, v| v[:twitter_id] }.compact
     log_ids('twitter_ids_new', twitter_ids_new, color)
 
     list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
@@ -87,6 +92,8 @@ def update_all
     logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
   end
+
+  YAML.dump(all_users, File.open('./data/users.yml', 'w'))
 end
 
 if $0 == __FILE__
