@@ -28,7 +28,7 @@ module UserPage
     def parse(html)
       doc = Nokogiri::HTML.parse(html, nil, 'utf-8')
 
-      trs_left = doc.css('#main-container > div.row > div.col-sm-3 > table > tr')
+      trs_left = doc.css('#main-container > div.row > div.col-md-3 > table > tr')
       twitter_tr = trs_left.select{ |tr| tr.css('th').text == 'Twitter ID' }
 
       if twitter_tr.any?
@@ -39,7 +39,7 @@ module UserPage
         twitter_id.downcase!
       end
 
-      trs_right = doc.css('#main-container > div.row > div.col-sm-9 > table > tr')
+      trs_right = doc.css('#main-container > div.row > div.col-md-9 > table > tr')
       last_competed_tr = trs_right.select{ |tr| tr.css('th').text == 'Last Competed' }
       last_competed = Date.parse(last_competed_tr.first.css('td').text)
 
