@@ -1,4 +1,5 @@
 require 'date'
+require 'json'
 require 'logger'
 require 'net/http'
 require 'uri'
@@ -46,17 +47,15 @@ end
 def update_all
   config = open('./config.yml', 'r') { |f| YAML.load(f) }
   twitter_client = get_twitter_client(config['twitter'])
-  all_users = {}
 
   colors.each do |color|
-    logger.info "[#{color.name}] Started processing"
+    logger.info "[#{color.name}] Started All Update"
 
     atcoder_usernames = RankingPage.usernames(color)
     log_ids('atcoder_usernames', atcoder_usernames, color)
 
     users = UserPage.users(atcoder_usernames, color)
-    all_users.merge!(users)
-    twitter_ids_new = users.select{ |k, v| v[:last_competed] >= color.last_competed_until }.
+    twitter_ids_new = users.select{ |k, v| v && v[:last_competed] >= color.last_competed_until }.
                         map{ |k, v| v[:twitter_id] }.compact
     log_ids('twitter_ids_new', twitter_ids_new, color)
 
@@ -91,6 +90,10 @@ def update_all
 
     logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
+
+    File.open("./data/#{color.name}.json", 'w') do |file|
+      JSON.dump(users, file)
+    end
   end
 
   YAML.dump(all_users, File.open('./data/users.yml', 'w'))
