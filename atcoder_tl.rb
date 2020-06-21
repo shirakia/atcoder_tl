@@ -15,19 +15,19 @@ require_relative 'atcoder_tl/util'
 include Util
 
 def colors
-  color = Struct.new(:name, :rating_lb, :rating_ub, :last_competed_until, :url)
+  color = Struct.new(:name, :name_ja, :rating_lb, :rating_ub, :last_competed_until, :url)
   today = Date.today
   # TODO configに出す
   [
-#     color.new('test',   3000, 9999, today << 3,  'https://twitter.com/i/lists/1265295344977408000'),
-#     color.new('red',    2800, 9999, today << 12, 'https://twitter.com/i/lists/1265268852528566273'),
-#     color.new('orange', 2400, 2799, today << 6,  'https://twitter.com/i/lists/1265268943393943554'),
-#     color.new('yellow', 2000, 2399, today << 6,  'https://twitter.com/i/lists/1265269023278690304'),
-#     color.new('blue',   1600, 1999, today << 3,  'https://twitter.com/i/lists/1265269077888479235'),
-#     color.new('cyan',   1200, 1599, today << 3,  'https://twitter.com/i/lists/1265269135493099526'),
-#     color.new('green',   800, 1199, today << 3,  'https://twitter.com/i/lists/1265269191877124101'),
-#     color.new('brown',   400,  799, today << 3,  'https://twitter.com/i/lists/1265269251641761793'),
-#     color.new('gray',      0,  399, today << 3,  'https://twitter.com/i/lists/1265269317169340417'),
+    # color.new('test',   'テ', 3000, 9999, today << 3,  'https://twitter.com/i/lists/1265295344977408000'),
+    # color.new('red',    '赤', 2800, 9999, today << 12, 'https://twitter.com/i/lists/1265268852528566273'),
+    # color.new('orange', '橙', 2400, 2799, today << 6,  'https://twitter.com/i/lists/1265268943393943554'),
+    # color.new('yellow', '黄', 2000, 2399, today << 6,  'https://twitter.com/i/lists/1265269023278690304'),
+    # color.new('blue',   '青', 1600, 1999, today << 3,  'https://twitter.com/i/lists/1265269077888479235'),
+    # color.new('cyan',   '水', 1200, 1599, today << 3,  'https://twitter.com/i/lists/1265269135493099526'),
+    # color.new('green',  '緑',  800, 1199, today << 3,  'https://twitter.com/i/lists/1265269191877124101'),
+    # color.new('brown',  '茶',  400,  799, today << 3,  'https://twitter.com/i/lists/1265269251641761793'),
+    # color.new('gray',   '灰',    1,  399, today << 3,  'https://twitter.com/i/lists/1265269317169340417'),
   ]
 end
 
