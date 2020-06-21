@@ -11,6 +11,7 @@ require 'twitter'
 
 require_relative 'atcoder_tl/ranking_page'
 require_relative 'atcoder_tl/user_page'
+require_relative 'atcoder_tl/standings_page'
 require_relative 'atcoder_tl/util'
 include Util
 
@@ -44,8 +45,7 @@ def log_ids(name, ids, color)
   logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
 end
 
-def update_all
-  config = open('./config.yml', 'r') { |f| YAML.load(f) }
+def update_all(config)
   twitter_client = get_twitter_client(config['twitter'])
 
   colors.each do |color|
@@ -86,7 +86,6 @@ def update_all
     tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
     tweet << color.url
     logger.info "[#{color.name}] #{tweet}"
-    twitter_client.update(tweet)
 
     logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
@@ -95,10 +94,49 @@ def update_all
       JSON.dump(users, file)
     end
   end
+end
 
-  YAML.dump(all_users, File.open('./data/users.yml', 'w'))
+def update_after_contest(config)
+  twitter_client = get_twitter_client(config['twitter'])
+  standings = StandingsPage.new('tokiomarine2020')
+  name2tid = {}
+  %w[red orange yellow blue cyan green brown gray].each{|c| name2tid.merge! JSON.parse(File.read("./data/#{c}.json"))}
+
+  colors.each do |color|
+    logger.info "[#{color.name}] Started After Contest Update"
+    users_to_be_added = standings.users_to_be_added(color)
+
+    tids_to_be_added = users_to_be_added
+                         .map{ |user| name2tid[user['UserScreenName']]&.fetch('twitter_id') }.compact
+    log_ids('tids_to_be_added', tids_to_be_added, color)
+
+    users_to_be_removed = standings.users_to_be_removed(color)
+    tids_to_be_removed = users_to_be_removed
+                           .map{ |user| name2tid[user['UserScreenName']]&.fetch('twitter_id') }.compact
+    log_ids('tids_to_be_removed', tids_to_be_removed, color)
+
+    list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
+    tids_to_be_added.each_slice(100) do |ids|
+      twitter_client.add_list_members(list, ids)
+    end
+    tids_to_be_removed.each_slice(100) do |ids|
+      twitter_client.remove_list_members(list, ids)
+    end
+
+    users_comming_up = standings.users_comming_up(color)
+    tweet = "atcoder_tl_#{color.name} を更新しました。\n"
+    tweet << "#{users_comming_up.size}名が#{color.name_ja}TL未満から#{color.name_ja}TLに追加されました。\n"
+    tweet << color.url
+    logger.info "[#{color.name}] #{tweet}"
+    twitter_client.update(tweet)
+
+    sleep(5)
+    logger.info "[#{color.name}] Finished processing"
+  end
 end
 
 if $0 == __FILE__
-  update_all
+  config = open('./config.yml', 'r') { |f| YAML.load(f) }
+  update_after_contest(config)
+  # update_all(config)
 end
