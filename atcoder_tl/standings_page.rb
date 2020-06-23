@@ -18,6 +18,13 @@ class StandingsPage
     end
   end
 
+  def users_to_be_removed(color)
+    @standings.select do |row|
+      color.rating_lb <= row['OldRating'] && row['OldRating'] <= color.rating_ub &&
+        (row['NewRating'] < color.rating_lb || color.rating_ub < row['NewRating'])
+    end
+  end
+
   def users_comming_up(color)
     @standings.select do |row|
       color.rating_lb <= row['NewRating'] && row['NewRating'] <= color.rating_ub &&
@@ -25,10 +32,10 @@ class StandingsPage
     end
   end
 
-  def users_to_be_removed(color)
+  def users_going_down(color)
     @standings.select do |row|
       color.rating_lb <= row['OldRating'] && row['OldRating'] <= color.rating_ub &&
-        (row['NewRating'] < color.rating_lb || color.rating_ub < row['NewRating'])
+        row['NewRating'] < color.rating_lb
     end
   end
 end

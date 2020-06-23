@@ -124,8 +124,10 @@ def update_after_contest(config)
     end
 
     users_comming_up = standings.users_comming_up(color)
+    users_going_down = standings.users_going_down(color)
     tweet = "atcoder_tl_#{color.name} を更新しました。\n"
     tweet << "#{users_comming_up.size}名が#{color.name_ja}TL未満から#{color.name_ja}TLに追加されました。\n"
+    tweet << "#{users_going_down.size}名が#{color.name_ja}TLから#{color.name_ja}TL未満に移動されました。\n"
     tweet << color.url
     logger.info "[#{color.name}] #{tweet}"
     twitter_client.update(tweet)
