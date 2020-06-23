@@ -97,6 +97,7 @@ def update_all(config)
 end
 
 def update_after_contest(config)
+  is_dry_run = false
   twitter_client = get_twitter_client(config['twitter'])
   standings = StandingsPage.new('tokiomarine2020')
   name2tid = {}
@@ -117,10 +118,10 @@ def update_after_contest(config)
 
     list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
     tids_to_be_added.each_slice(100) do |ids|
-      twitter_client.add_list_members(list, ids)
+      twitter_client.add_list_members(list, ids) unless is_dry_run
     end
     tids_to_be_removed.each_slice(100) do |ids|
-      twitter_client.remove_list_members(list, ids)
+      twitter_client.remove_list_members(list, ids) unless is_dry_run
     end
 
     users_comming_up = standings.users_comming_up(color)
@@ -130,7 +131,7 @@ def update_after_contest(config)
     tweet << "#{users_going_down.size}名が#{color.name_ja}TLから#{color.name_ja}TL未満に移動されました。\n"
     tweet << color.url
     logger.info "[#{color.name}] #{tweet}"
-    twitter_client.update(tweet)
+    twitter_client.update(tweet) unless is_dry_run
 
     sleep(5)
     logger.info "[#{color.name}] Finished processing"
