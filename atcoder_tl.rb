@@ -55,38 +55,34 @@ def update_all(config)
     log_ids('atcoder_usernames', atcoder_usernames, color)
 
     users = UserPage.users(atcoder_usernames, color)
-    twitter_ids_new = users.select{ |k, v| v && v[:last_competed] >= color.last_competed_until }.
-                        map{ |k, v| v[:twitter_id] }.compact
-    log_ids('twitter_ids_new', twitter_ids_new, color)
+    tids_new = users.select{ |k, v| v && v[:last_competed] >= color.last_competed_until }.
+                        map{ |k, v| v[:tid] }.compact
+    log_ids('tids_new', tids_new, color)
 
     list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
-    twitter_ids_current = twitter_client.list_members(list).
+    tids_current = twitter_client.list_members(list).
       map{|member| member.screen_name.downcase}
-    log_ids('twitter_ids_current', twitter_ids_current, color)
+    log_ids('tids_current', tids_current, color)
 
-    twitter_ids_to_be_added   = twitter_ids_new     - twitter_ids_current
-    twitter_ids_to_be_removed = twitter_ids_current - twitter_ids_new
-    log_ids('twitter_ids_to_be_added', twitter_ids_to_be_added, color)
-    log_ids('twitter_ids_to_be_removed', twitter_ids_to_be_removed, color)
+    tids_to_be_added   = tids_new     - tids_current
+    tids_to_be_removed = tids_current - tids_new
+    log_ids('tids_to_be_added', tids_to_be_added, color)
+    log_ids('tids_to_be_removed', tids_to_be_removed, color)
 
-    twitter_ids_to_be_added.each_slice(100) do |ids|
+    tids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
     end
     count_after_add = twitter_client.list_members(list).count
 
-    twitter_ids_to_be_removed.each_slice(100) do |ids|
+    tids_to_be_removed.each_slice(100) do |ids|
       twitter_client.remove_list_members(list, ids)
     end
     count_after_delete = twitter_client.list_members(list).count
 
-    add_count    = count_after_add - twitter_ids_current.size
+    add_count    = count_after_add - tids_current.size
     delete_count = count_after_add - count_after_delete
 
-    tweet = "atcoder_tl_#{color.name} を更新しました。\n"
-    tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
-    tweet << color.url
-    logger.info "[#{color.name}] #{tweet}"
-
+    logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
     logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
 
@@ -108,12 +104,12 @@ def update_after_contest(config)
     users_to_be_added = standings.users_to_be_added(color)
 
     tids_to_be_added = users_to_be_added
-                         .map{ |user| name2tid[user['UserScreenName']]&.fetch('twitter_id') }.compact
+                         .map{ |user| name2tid[user['UserScreenName']]&.fetch('tid') }.compact
     log_ids('tids_to_be_added', tids_to_be_added, color)
 
     users_to_be_removed = standings.users_to_be_removed(color)
     tids_to_be_removed = users_to_be_removed
-                           .map{ |user| name2tid[user['UserScreenName']]&.fetch('twitter_id') }.compact
+                           .map{ |user| name2tid[user['UserScreenName']]&.fetch('tid') }.compact
     log_ids('tids_to_be_removed', tids_to_be_removed, color)
 
     list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first

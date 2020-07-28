@@ -32,11 +32,11 @@ module UserPage
       twitter_tr = trs_left.select{ |tr| tr.css('th').text == 'Twitter ID' }
 
       if twitter_tr.any?
-        twitter_id = twitter_tr.first.css('td').text
+        tid = twitter_tr.first.css('td').text
         # @shirakia -> shirakia と変換。間違って @@shirakia のように登録している人が
         # 複数人観測されるため、slice!ではなくdelete!('@')
-        twitter_id.delete!('@')
-        twitter_id.downcase!
+        tid.delete!('@')
+        tid.downcase!
       end
 
       trs_right = doc.css('#main-container > div.row > div.col-md-9 > table > tr')
@@ -44,7 +44,7 @@ module UserPage
       last_competed = Date.parse(last_competed_tr.first.css('td').text)
 
       {
-        twitter_id: twitter_id,
+        tid: tid,
         last_competed: last_competed
       }
     end
