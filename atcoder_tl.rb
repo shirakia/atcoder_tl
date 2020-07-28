@@ -82,11 +82,7 @@ def update_all(config)
     add_count    = count_after_add - tids_current.size
     delete_count = count_after_add - count_after_delete
 
-    tweet = "atcoder_tl_#{color.name} を更新しました。\n"
-    tweet << "#{add_count}名が追加され、#{delete_count}名が削除されました。\n"
-    tweet << color.url
-    logger.info "[#{color.name}] #{tweet}"
-
+    logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
     logger.info "[#{color.name}] List URL: " + list.url.to_s
     logger.info "[#{color.name}] Finished processing"
 
