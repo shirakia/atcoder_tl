@@ -136,9 +136,13 @@ end
 
 if $0 == __FILE__
   config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
-  if ARGV.empty?
-    update_all(config)
+  contest_id = ARGV[0]
+
+  if contest_id
+    set_logger("./log/#{contest_id}.log")
+    update_after_contest(contest_id, config)
   else
-    update_after_contest(ARGV[0], config)
+    set_logger("./log/all_#{Date.today.strftime('%y%m%d')}.log")
+    update_all(config)
   end
 end
