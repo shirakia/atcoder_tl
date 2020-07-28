@@ -92,10 +92,10 @@ def update_all(config)
   end
 end
 
-def update_after_contest(config)
+def update_after_contest(contest_id, config)
   is_dry_run = false
   twitter_client = get_twitter_client(config['twitter'])
-  standings = StandingsPage.new('tokiomarine2020')
+  standings = StandingsPage.new(contest_id)
   name2tid = {}
   %w[red orange yellow blue cyan green brown gray].each{|c| name2tid.merge! JSON.parse(File.read("./data/#{c}.json"))}
 
@@ -135,7 +135,10 @@ def update_after_contest(config)
 end
 
 if $0 == __FILE__
-  config = open('./config.yml', 'r') { |f| YAML.load(f) }
-  update_after_contest(config)
-  # update_all(config)
+  config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
+  if ARGV.empty?
+    update_all(config)
+  else
+    update_after_contest(ARGV[0], config)
+  end
 end
