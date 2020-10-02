@@ -12,8 +12,6 @@ require 'twitter'
 require_relative 'atcoder_tl/ranking_page'
 require_relative 'atcoder_tl/user_page'
 require_relative 'atcoder_tl/standings_page'
-require_relative 'atcoder_tl/util'
-include Util
 
 def colors
   color = Struct.new(:name, :name_ja, :rating_lb, :rating_ub, :last_competed_until, :url)
@@ -42,14 +40,14 @@ def get_twitter_client(twitter_config)
 end
 
 def log_ids(name, ids, color)
-  logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
+  $logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
 end
 
 def update_all(config)
   twitter_client = get_twitter_client(config['twitter'])
 
   colors.each do |color|
-    logger.info "[#{color.name}] Started All Update"
+    $logger.info "[#{color.name}] Started All Update"
 
     atcoder_usernames = RankingPage.usernames(color)
     log_ids('atcoder_usernames', atcoder_usernames, color)
@@ -82,9 +80,9 @@ def update_all(config)
     add_count    = count_after_add - tids_current.size
     delete_count = count_after_add - count_after_delete
 
-    logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
-    logger.info "[#{color.name}] List URL: " + list.url.to_s
-    logger.info "[#{color.name}] Finished processing"
+    $logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
+    $logger.info "[#{color.name}] List URL: " + list.url.to_s
+    $logger.info "[#{color.name}] Finished processing"
 
     File.open("./data/#{color.name}.json", 'w') do |file|
       JSON.dump(users, file)
@@ -100,7 +98,7 @@ def update_after_contest(contest_id, config)
   %w[red orange yellow blue cyan green brown gray].each{|c| name2tid.merge! JSON.parse(File.read("./data/#{c}.json"))}
 
   colors.each do |color|
-    logger.info "[#{color.name}] Started After Contest Update"
+    $logger.info "[#{color.name}] Started After Contest Update"
     users_to_be_added = standings.users_to_be_added(color)
 
     tids_to_be_added = users_to_be_added
@@ -126,11 +124,11 @@ def update_after_contest(contest_id, config)
     tweet << "#{users_comming_up.size}名が#{color.name_ja}TL未満から#{color.name_ja}TLに追加されました。\n"
     tweet << "#{users_going_down.size}名が#{color.name_ja}TLから#{color.name_ja}TL未満に移動されました。\n"
     tweet << color.url
-    logger.info "[#{color.name}] #{tweet}"
+    $logger.info "[#{color.name}] #{tweet}"
     twitter_client.update(tweet) unless is_dry_run
 
     sleep(5)
-    logger.info "[#{color.name}] Finished processing"
+    $logger.info "[#{color.name}] Finished processing"
   end
 end
 
@@ -139,10 +137,10 @@ if $0 == __FILE__
   contest_id = ARGV[0]
 
   if contest_id
-    set_logger("./log/#{contest_id}.log")
+    $logger = Logger.new("./log/#{contest_id}.log")
     update_after_contest(contest_id, config)
   else
-    set_logger("./log/all_#{Date.today.strftime('%y%m%d')}.log")
+    $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
     update_all(config)
   end
 end

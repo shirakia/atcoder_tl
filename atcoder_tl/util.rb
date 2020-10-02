@@ -11,12 +11,4 @@ module Util
       response.body
     end
   end
-
-  def set_logger(log_path)
-    @logger = Logger.new(log_path)
-  end
-
-  def logger
-    @logger
-  end
 end

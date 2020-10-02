@@ -6,14 +6,14 @@ module UserPage
 
     def users(usernames, color)
       info = usernames.map.with_index do |username, i|
-        logger.info "[#{color.name}] Collecting Twitter ID progress: #{i}" if i % 100 == 0
+        $logger.info "[#{color.name}] Collecting Twitter ID progress: #{i}" if i % 100 == 0
         url = url(username)
 
         begin
           html = download(url)
           parse(html)
         rescue
-          logger.warn "[#{color.name}] 404 or parse error:  #{url}"
+          $logger.warn "[#{color.name}] 404 or parse error:  #{url}"
           nil
         end
       end
