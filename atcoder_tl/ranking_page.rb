@@ -9,7 +9,7 @@ module RankingPage
       page = 1
       while true
         url = url(color.rating_lb, color.rating_ub, page)
-        logger.info "[#{color.name}] Downloading #{url}"
+        $logger.info "[#{color.name}] Downloading #{url}"
 
         html = download(url)
         usernames_on_page = parse(html)
