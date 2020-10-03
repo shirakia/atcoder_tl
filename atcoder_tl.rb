@@ -136,11 +136,13 @@ if $0 == __FILE__
   config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
   contest_id = ARGV[0]
 
-  if contest_id
-    $logger = Logger.new("./log/#{contest_id}.log")
-    update_after_contest(contest_id, config)
-  else
+  if contest_id.nil?
+    puts 'コンテストIDを指定するか、all を指定して下さい。'
+  elsif contest_id == 'all'
     $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
     update_all(config)
+  else
+    $logger = Logger.new("./log/#{contest_id}.log")
+    update_after_contest(contest_id, config)
   end
 end
