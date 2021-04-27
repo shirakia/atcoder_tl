@@ -44,7 +44,9 @@ def log_ids(name, ids, color)
 end
 
 def update_all(config)
+  is_dry_run = false
   twitter_client = get_twitter_client(config['twitter'])
+  twitter_client.update('全リストの更新を開始します。') unless is_dry_run
 
   colors.each do |color|
     $logger.info "[#{color.name}] Started All Update"
@@ -88,6 +90,8 @@ def update_all(config)
       JSON.dump(users, file)
     end
   end
+
+  twitter_client.update('全リストの更新を完了しました。') unless is_dry_run
 end
 
 def update_after_contest(contest_id, config)
