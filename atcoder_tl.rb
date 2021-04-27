@@ -30,6 +30,14 @@ def colors
   ]
 end
 
+def all_and_agc_colors
+  if colors.size <= 4
+    colors
+  else
+    colors + colors.slice(0, 4)
+  end
+end
+
 def get_twitter_client(twitter_config)
   Twitter::REST::Client.new do |config|
     config.consumer_key        = twitter_config['consumer_key']
@@ -48,7 +56,7 @@ def update_all(config)
   twitter_client = get_twitter_client(config['twitter'])
   twitter_client.update('全リストの更新を開始します。') unless is_dry_run
 
-  colors.each do |color|
+  all_and_agc_colors.each do |color|
     $logger.info "[#{color.name}] Started All Update"
 
     atcoder_usernames = RankingPage.usernames(color)
