@@ -1,6 +1,6 @@
 module Util
   def download(url)
-    sleep(1)
+    sleep(0.2)
 
     uri = URI.parse(url)
     response = Net::HTTP.get_response(uri)

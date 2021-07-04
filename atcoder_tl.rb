@@ -19,15 +19,23 @@ def colors
   # TODO configに出す
   [
     # color.new('test',   'テ', 3000, 9999, today << 3,  'https://twitter.com/i/lists/1265295344977408000'),
-    # color.new('red',    '赤', 2800, 9999, today << 12, 'https://twitter.com/i/lists/1265268852528566273'),
-    # color.new('orange', '橙', 2400, 2799, today << 6,  'https://twitter.com/i/lists/1265268943393943554'),
-    # color.new('yellow', '黄', 2000, 2399, today << 6,  'https://twitter.com/i/lists/1265269023278690304'),
-    # color.new('blue',   '青', 1600, 1999, today << 3,  'https://twitter.com/i/lists/1265269077888479235'),
-    # color.new('cyan',   '水', 1200, 1599, today << 3,  'https://twitter.com/i/lists/1265269135493099526'),
-    # color.new('green',  '緑',  800, 1199, today << 3,  'https://twitter.com/i/lists/1265269191877124101'),
-    # color.new('brown',  '茶',  400,  799, today << 3,  'https://twitter.com/i/lists/1265269251641761793'),
-    # color.new('gray',   '灰',    1,  399, today << 3,  'https://twitter.com/i/lists/1265269317169340417'),
+    color.new('red',    '赤', 2800, 9999, today << 12, 'https://twitter.com/i/lists/1265268852528566273'),
+    color.new('orange', '橙', 2400, 2799, today << 6,  'https://twitter.com/i/lists/1265268943393943554'),
+    color.new('yellow', '黄', 2000, 2399, today << 6,  'https://twitter.com/i/lists/1265269023278690304'),
+    color.new('blue',   '青', 1600, 1999, today << 3,  'https://twitter.com/i/lists/1265269077888479235'),
+    color.new('cyan',   '水', 1200, 1599, today << 3,  'https://twitter.com/i/lists/1265269135493099526'),
+    color.new('green',  '緑',  800, 1199, today << 3,  'https://twitter.com/i/lists/1265269191877124101'),
+    color.new('brown',  '茶',  400,  799, today << 3,  'https://twitter.com/i/lists/1265269251641761793'),
+    color.new('gray',   '灰',    1,  399, today << 3,  'https://twitter.com/i/lists/1265269317169340417'),
   ]
+end
+
+def all_and_agc_colors
+  if colors.size <= 4
+    colors
+  else
+    colors + colors.slice(0, 4)
+  end
 end
 
 def get_twitter_client(twitter_config)
@@ -44,9 +52,11 @@ def log_ids(name, ids, color)
 end
 
 def update_all(config)
+  is_dry_run = false
   twitter_client = get_twitter_client(config['twitter'])
+  twitter_client.update('全リストの更新を開始します。') unless is_dry_run
 
-  colors.each do |color|
+  all_and_agc_colors.each do |color|
     $logger.info "[#{color.name}] Started All Update"
 
     atcoder_usernames = RankingPage.usernames(color)
@@ -70,12 +80,12 @@ def update_all(config)
     tids_to_be_added.each_slice(100) do |ids|
       twitter_client.add_list_members(list, ids)
     end
-    count_after_add = twitter_client.list_members(list).count
+    count_after_add = twitter_client.list_members(list).count unless is_dry_run
 
     tids_to_be_removed.each_slice(100) do |ids|
       twitter_client.remove_list_members(list, ids)
     end
-    count_after_delete = twitter_client.list_members(list).count
+    count_after_delete = twitter_client.list_members(list).count unless is_dry_run
 
     add_count    = count_after_add - tids_current.size
     delete_count = count_after_add - count_after_delete
@@ -88,6 +98,8 @@ def update_all(config)
       JSON.dump(users, file)
     end
   end
+
+  twitter_client.update('全リストの更新を完了しました。') unless is_dry_run
 end
 
 def update_after_contest(contest_id, config)
