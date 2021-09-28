@@ -77,14 +77,14 @@ def update_all(config)
     log_ids('tids_to_be_removed', tids_to_be_removed, color)
 
     tids_to_be_added.each_slice(100) do |ids|
-      twitter_client.add_list_members(list, ids)
+      twitter_client.add_list_members(list, ids) unless is_dry_run
     end
-    count_after_add = twitter_client.list_members(list).count unless is_dry_run
+    count_after_add = twitter_client.list_members(list).count
 
     tids_to_be_removed.each_slice(100) do |ids|
-      twitter_client.remove_list_members(list, ids)
+      twitter_client.remove_list_members(list, ids) unless is_dry_run
     end
-    count_after_delete = twitter_client.list_members(list).count unless is_dry_run
+    count_after_delete = twitter_client.list_members(list).count
 
     add_count    = count_after_add - tids_current.size
     delete_count = count_after_add - count_after_delete
