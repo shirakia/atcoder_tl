@@ -11,7 +11,6 @@ require 'twitter'
 
 require_relative 'atcoder_tl/ranking_page'
 require_relative 'atcoder_tl/user_page'
-require_relative 'atcoder_tl/standings_page'
 
 def colors
   color = Struct.new(:name, :name_ja, :rating_lb, :rating_ub, :last_competed_until, :url)
@@ -102,59 +101,9 @@ def update_all(config)
   twitter_client.update('全リストの更新を完了しました。') unless is_dry_run
 end
 
-def update_after_contest(contest_id, config)
-  is_dry_run = false
-  twitter_client = get_twitter_client(config['twitter'])
-  standings = StandingsPage.new(contest_id)
-  name2tid = {}
-  %w[red orange yellow blue cyan green brown gray].each{|c| name2tid.merge! JSON.parse(File.read("./data/#{c}.json"))}
-
-  colors.each do |color|
-    $logger.info "[#{color.name}] Started After Contest Update"
-    users_to_be_added = standings.users_to_be_added(color)
-
-    tids_to_be_added = users_to_be_added
-                         .map{ |user| name2tid[user['UserScreenName']]&.fetch('tid') }.compact
-    log_ids('tids_to_be_added', tids_to_be_added, color)
-
-    users_to_be_removed = standings.users_to_be_removed(color)
-    tids_to_be_removed = users_to_be_removed
-                           .map{ |user| name2tid[user['UserScreenName']]&.fetch('tid') }.compact
-    log_ids('tids_to_be_removed', tids_to_be_removed, color)
-
-    list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
-    tids_to_be_added.each_slice(100) do |ids|
-      twitter_client.add_list_members(list, ids) unless is_dry_run
-    end
-    tids_to_be_removed.each_slice(100) do |ids|
-      twitter_client.remove_list_members(list, ids) unless is_dry_run
-    end
-
-    users_comming_up = standings.users_comming_up(color)
-    users_going_down = standings.users_going_down(color)
-    tweet = "atcoder_tl_#{color.name} を更新しました。\n"
-    tweet << "#{users_comming_up.size}名が#{color.name_ja}TL未満から#{color.name_ja}TLに追加されました。\n"
-    tweet << "#{users_going_down.size}名が#{color.name_ja}TLから#{color.name_ja}TL未満に移動されました。\n"
-    tweet << color.url
-    $logger.info "[#{color.name}] #{tweet}"
-    twitter_client.update(tweet) unless is_dry_run
-
-    sleep(5)
-    $logger.info "[#{color.name}] Finished processing"
-  end
-end
-
 if $0 == __FILE__
   config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
-  contest_id = ARGV[0]
+  $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
 
-  if contest_id.nil?
-    puts 'コンテストIDを指定するか、all を指定して下さい。'
-  elsif contest_id == 'all'
-    $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
-    update_all(config)
-  else
-    $logger = Logger.new("./log/#{contest_id}.log")
-    update_after_contest(contest_id, config)
-  end
+  update_all(config)
 end
