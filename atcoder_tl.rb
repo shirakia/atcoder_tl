@@ -103,7 +103,8 @@ end
 
 if $0 == __FILE__
   config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
-  $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
+  # $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
+  $logger = Logger.new(STDOUT)
 
   update_all(config)
 end
