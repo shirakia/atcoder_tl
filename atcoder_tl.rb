@@ -55,10 +55,17 @@ def update_all(config)
   twitter_client = get_twitter_client(config['twitter'])
   twitter_client.update('全リストの更新を開始します。') unless is_dry_run
 
+  atcoder_users_all = RankingPage.users()
   all_and_agc_colors.each do |color|
     $logger.info "[#{color.name}] Started All Update"
 
-    atcoder_usernames = RankingPage.usernames(color)
+    atcoder_usernames = []
+    for user in atcoder_users_all
+      if color.rating_lb <= user.rating && user.rating <= color.rating_ub
+        atcoder_usernames.append user.username
+      end
+    end
+
     log_ids('atcoder_usernames', atcoder_usernames, color)
 
     users = UserPage.users(atcoder_usernames, color)
