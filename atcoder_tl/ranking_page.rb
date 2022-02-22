@@ -31,17 +31,15 @@ module RankingPage
     end
 
     def parse(html)
-      user = Struct.new(:username, :rank, :rating)
+      user = Struct.new(:username, :rating)
       doc = Nokogiri::HTML.parse(html, nil, 'utf-8')
-      entries = doc.css('tbody').css('tr')
+      entries = doc.css('tbody/tr')
       result = []
       for entry in entries
-        rank = entry.children[1].text.to_i
-        username = entry.children[3].css('span')[0].text
-        country_image_url = entry.children[3].css('img')[0]['src'] # the image representing the country always comes first. Crowns, if present, follow.
-        rating = entry.children[7].text.to_i
+        _rank, username, _birth_year, rating, _max_rating, _participants, _win = entry.css('td')
+        country_image_url = username.css('img')[0]['src'] # The image representing the country always comes first. Crowns, if present, follow.
         if country_image_url == '//img.atcoder.jp/assets/flag/JP.png'
-          result.append user.new(username, rank, rating)
+          result.append user.new(username.css('span')[0].text, rating.text.to_i)
         end
       end
       is_last_page = entries.size < 100
