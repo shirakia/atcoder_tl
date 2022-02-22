@@ -23,10 +23,6 @@ module RankingPage
       users
     end
 
-    def last_page?(usernames_on_page)
-      usernames_on_page.size < 100
-    end
-
     def url(page)
       options = {
         'page' => page,
@@ -37,9 +33,9 @@ module RankingPage
     def parse(html)
       user = Struct.new(:username, :rank, :rating)
       doc = Nokogiri::HTML.parse(html, nil, 'utf-8')
-      entries = doc.css('tr') # TODO find better css selector
+      entries = doc.css('tbody').css('tr')
       result = []
-      for entry in entries[1..] # Need to skip the first row, because it contains explanation of the columns
+      for entry in entries
         rank = entry.children[1].text.to_i
         username = entry.children[3].css('span')[0].text
         country_image_url = entry.children[3].css('img')[0]['src'] # the image representing the country always comes first. Crowns, if present, follow.
@@ -48,7 +44,7 @@ module RankingPage
           result.append user.new(username, rank, rating)
         end
       end
-      is_last_page = entries.size < 101
+      is_last_page = entries.size < 100
       [result, is_last_page]
     end
   end
