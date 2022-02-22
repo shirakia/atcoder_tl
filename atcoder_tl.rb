@@ -59,12 +59,9 @@ def update_all(config)
   all_and_agc_colors.each do |color|
     $logger.info "[#{color.name}] Started All Update"
 
-    atcoder_usernames = []
-    for user in atcoder_users_all
-      if color.rating_lb <= user.rating && user.rating <= color.rating_ub
-        atcoder_usernames.append user.username
-      end
-    end
+    atcoder_usernames = atcoder_users_all.select do |user|
+      user.rating.between?(color.rating_lb, color.rating_ub)
+    end.map(&:username)
 
     log_ids('atcoder_usernames', atcoder_usernames, color)
 
