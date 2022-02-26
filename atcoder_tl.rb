@@ -72,8 +72,7 @@ class AtCoderTL
       log_ids('tids_new', tids_new, color)
 
       list = @twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
-      tids_current = @twitter_client.list_members(list).
-        map{|member| member.screen_name.downcase}
+      tids_current = @twitter_client.list_members(list).map{|member| member.screen_name.downcase}
       log_ids('tids_current', tids_current, color)
 
       tids_to_be_added   = tids_new     - tids_current
