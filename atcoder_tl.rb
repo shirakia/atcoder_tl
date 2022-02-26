@@ -38,18 +38,14 @@ def all_and_agc_colors
 end
 
 class AtCoderTL
-  def __init__(config, is_dry_run)
+  def initialize(config, is_dry_run)
     @config = config
     @is_dry_run = is_dry_run
-    @twitter_client = get_twitter_client
-  end
-
-  def get_twitter_client
-    @client = Twitter::REST::Client.new do |config|
-      config.consumer_key        = @config['consumer_key']
-      config.consumer_secret     = @config['consumer_secret']
-      config.access_token        = @config['access_token']
-      config.access_token_secret = @config['access_token_secret']
+    @twitter_client = Twitter::REST::Client.new do |config|
+      config.consumer_key        = @config['twitter']['consumer_key']
+      config.consumer_secret     = @config['twitter']['consumer_secret']
+      config.access_token        = @config['twitter']['access_token']
+      config.access_token_secret = @config['twitter']['access_token_secret']
     end
   end
 
@@ -88,17 +84,17 @@ class AtCoderTL
       tids_to_be_added.each_slice(100) do |ids|
         @twitter_client.add_list_members(list, ids) unless @is_dry_run
       end
-      count_after_add = @twitter_client.list_members(list).count
+      count_after_added = @twitter_client.list_members(list).count
 
       tids_to_be_removed.each_slice(100) do |ids|
         @twitter_client.remove_list_members(list, ids) unless @is_dry_run
       end
-      count_after_delete = @twitter_client.list_members(list).count
+      count_after_deleted = @twitter_client.list_members(list).count
 
-      add_count    = count_after_add - tids_current.size
-      delete_count = count_after_add - count_after_delete
+      added_count   = count_after_added - tids_current.size
+      deleted_count = count_after_added - count_after_deleted
 
-      $logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
+      $logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{added_count}名を追加、#{deleted_count}名を削除。"
       $logger.info "[#{color.name}] List URL: " + list.url.to_s
       $logger.info "[#{color.name}] Finished processing"
 
