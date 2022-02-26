@@ -37,78 +37,79 @@ def all_and_agc_colors
   end
 end
 
-def get_twitter_client(twitter_config)
-  Twitter::REST::Client.new do |config|
-    config.consumer_key        = twitter_config['consumer_key']
-    config.consumer_secret     = twitter_config['consumer_secret']
-    config.access_token        = twitter_config['access_token']
-    config.access_token_secret = twitter_config['access_token_secret']
-  end
-end
-
-def log_ids(name, ids, color)
-  $logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
-end
-
-def update_all(config)
-  is_dry_run = false
-  twitter_client = get_twitter_client(config['twitter'])
-  twitter_client.update('全リストの更新を開始します。') unless is_dry_run
-
-  atcoder_users_all = RankingPage.users()
-  all_and_agc_colors.each do |color|
-    $logger.info "[#{color.name}] Started All Update"
-
-    atcoder_usernames = atcoder_users_all.select do |user|
-      user.rating.between?(color.rating_lb, color.rating_ub)
-    end.map(&:username)
-
-    log_ids('atcoder_usernames', atcoder_usernames, color)
-
-    users = UserPage.users(atcoder_usernames, color)
-    tids_new = users.select{ |k, v| v && v[:last_competed] >= color.last_competed_until }.
-                        map{ |k, v| v[:tid] }.compact
-    log_ids('tids_new', tids_new, color)
-
-    list = twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
-    tids_current = twitter_client.list_members(list).
-      map{|member| member.screen_name.downcase}
-    log_ids('tids_current', tids_current, color)
-
-    tids_to_be_added   = tids_new     - tids_current
-    tids_to_be_removed = tids_current - tids_new
-    log_ids('tids_to_be_added', tids_to_be_added, color)
-    log_ids('tids_to_be_removed', tids_to_be_removed, color)
-
-    tids_to_be_added.each_slice(100) do |ids|
-      twitter_client.add_list_members(list, ids) unless is_dry_run
-    end
-    count_after_add = twitter_client.list_members(list).count
-
-    tids_to_be_removed.each_slice(100) do |ids|
-      twitter_client.remove_list_members(list, ids) unless is_dry_run
-    end
-    count_after_delete = twitter_client.list_members(list).count
-
-    add_count    = count_after_add - tids_current.size
-    delete_count = count_after_add - count_after_delete
-
-    $logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{add_count}名を追加、#{delete_count}名を削除。"
-    $logger.info "[#{color.name}] List URL: " + list.url.to_s
-    $logger.info "[#{color.name}] Finished processing"
-
-    File.open("./data/#{color.name}.json", 'w') do |file|
-      JSON.dump(users, file)
+class AtCoderTL
+  def initialize(config, is_dry_run)
+    @config = config
+    @is_dry_run = is_dry_run
+    @twitter_client = Twitter::REST::Client.new do |config|
+      config.consumer_key        = @config['twitter']['consumer_key']
+      config.consumer_secret     = @config['twitter']['consumer_secret']
+      config.access_token        = @config['twitter']['access_token']
+      config.access_token_secret = @config['twitter']['access_token_secret']
     end
   end
 
-  twitter_client.update('全リストの更新を完了しました。') unless is_dry_run
+  def log_ids(name, ids, color)
+    $logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
+  end
+
+  def tweet(text)
+    @twitter_client.update(text) unless @is_dry_run
+  end
+
+  def update_all
+    tweet('全リストの更新を開始します。')
+
+    atcoder_users_all = RankingPage.users()
+    all_and_agc_colors.each do |color|
+      $logger.info "[#{color.name}] Started All Update"
+
+      atcoder_usernames = atcoder_users_all.select do |user|
+        user.rating.between?(color.rating_lb, color.rating_ub)
+      end.map(&:username)
+
+      log_ids('atcoder_usernames', atcoder_usernames, color)
+
+      users = UserPage.users(atcoder_usernames, color)
+      tids_new = users.select{ |k, v| v && v[:last_competed] >= color.last_competed_until }.
+                          map{ |k, v| v[:tid] }.compact
+      log_ids('tids_new', tids_new, color)
+
+      list = @twitter_client.owned_lists.select{|list| list.name == "atcoder_tl_#{color.name}"}.first
+      tids_current = @twitter_client.list_members(list).map{|member| member.screen_name.downcase}
+      log_ids('tids_current', tids_current, color)
+
+      tids_to_be_added   = tids_new     - tids_current
+      tids_to_be_removed = tids_current - tids_new
+      log_ids('tids_to_be_added', tids_to_be_added, color)
+      log_ids('tids_to_be_removed', tids_to_be_removed, color)
+
+      @twitter_client.add_list_members(list, tids_to_be_added) unless @is_dry_run
+      count_after_added = @twitter_client.list_members(list).count
+
+      @twitter_client.remove_list_members(list, tids_to_be_removed) unless @is_dry_run
+      count_after_deleted = @twitter_client.list_members(list).count
+
+      added_count   = count_after_added - tids_current.size
+      deleted_count = count_after_added - count_after_deleted
+
+      $logger.info "[#{color.name}] atcoder_tl_#{color.name} を更新。#{added_count}名を追加、#{deleted_count}名を削除。"
+      $logger.info "[#{color.name}] List URL: " + list.url.to_s
+      $logger.info "[#{color.name}] Finished processing"
+
+      File.open("./data/#{color.name}.json", 'w') do |file|
+        JSON.dump(users, file)
+      end
+    end
+
+    tweet('全リストの更新を完了しました。')
+  end
 end
 
 if $0 == __FILE__
   config = open('./config.yml.bot', 'r') { |f| YAML.load(f) }
   # $logger = Logger.new("./log/all_#{Date.today.strftime('%y%m%d')}.log")
   $logger = Logger.new(STDOUT)
-
-  update_all(config)
+  atl = AtCoderTL.new(config, true)
+  atl.update_all
 end
