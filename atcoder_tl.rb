@@ -53,8 +53,12 @@ class AtCoderTL
     $logger.info "[#{color.name}] #{name}(#{ids.size}): #{ids.sort.join(', ')}"
   end
 
+  def tweet(text)
+    @twitter_client.update(text) unless @is_dry_run
+  end
+
   def update_all
-    @twitter_client.update('全リストの更新を開始します。') unless @is_dry_run
+    tweet('全リストの更新を開始します。')
 
     atcoder_users_all = RankingPage.users()
     all_and_agc_colors.each do |color|
@@ -102,7 +106,7 @@ class AtCoderTL
       end
     end
 
-    @twitter_client.update('全リストの更新を完了しました。') unless @is_dry_run
+    tweet('全リストの更新を完了しました。')
   end
 end
 
