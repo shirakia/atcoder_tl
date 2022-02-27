@@ -58,9 +58,17 @@ class AtCoderTL
   end
 
   def update_all
+    atcoder_users_all = RankingPage.users()
+
+    $logger.info "atcoder_users_all count: #{atcoder_users_all.size}"
+    if atcoder_users_all.empty?
+      $logger.info 'リストの更新に失敗しました。'
+      tweet('リストの更新に失敗しました。')
+      return
+    end
+
     tweet('全リストの更新を開始します。')
 
-    atcoder_users_all = RankingPage.users()
     all_and_agc_colors.each do |color|
       $logger.info "[#{color.name}] Started All Update"
 
